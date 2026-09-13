@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-namespace CeramicManager
+﻿namespace CeramicManager
 {
     public partial class App : Application
     {
@@ -9,9 +7,53 @@ namespace CeramicManager
             InitializeComponent();
         }
 
-        protected override Window CreateWindow(IActivationState? activationState)
+        protected override Window CreateWindow(
+            IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            Window window =
+                new Window(
+                    new AppShell());
+
+#if WINDOWS
+
+            window.Title =
+                "CeramicManager";
+
+            window.TitleBar =
+                new TitleBar
+                {
+                    Title =
+                        "",
+
+                    Content =
+                        new Label
+                        {
+                            Text =
+                                "CeramicManager",
+
+                            FontSize =
+                                14,
+
+                            FontAttributes =
+                                FontAttributes.Bold,
+
+                            HorizontalTextAlignment =
+                                TextAlignment.Center,
+
+                            HorizontalOptions =
+                                LayoutOptions.Fill,
+
+                            VerticalTextAlignment =
+                                TextAlignment.Center,
+
+                            VerticalOptions =
+                                LayoutOptions.Center
+                        }
+                };
+
+#endif
+
+            return window;
         }
     }
 }
