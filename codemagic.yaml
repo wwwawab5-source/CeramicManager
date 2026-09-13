@@ -1,25 +1,38 @@
 workflows:
   maui-ios-build:
-    name: CeramicManager iOS Build
-    max_build_duration: 60
+    name: CeramicManager iOS
+    max_build_duration: 120
     instance_type: mac_mini_m2
-    triggering:
-      events:
-        - push
+
+    environment:
+      vars:
+        DOTNET_PATH: $CM_BUILD_DIR/dotnet
+        DOTNET: $CM_BUILD_DIR/dotnet/dotnet
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: com.companyname.ceramicmanager
+
     scripts:
-      - name: Build iOS Application
+      - name: Install .NET SDK
         script: |
-          # 1. البحث التلقائي عن مسار دوت نت وتفعيله أينما وجد في خادم الماك
-          export PATH=$PATH:/usr/local/share/dotnet:/usr/share/dotnet:$HOME/.dotnet
-          export DOTNET_ROOT=/usr/local/share/dotnet
-          
-          # تأكيد إضافي للمسار لضمان عمله في خوادم آبل السيليكون M2
-          if [ -d "/usr/local/share/dotnet" ]; then
-            export PATH="/usr/local/share/dotnet:$PATH"
-          fi
-          
-          # 2. تشغيل أوامر بيئة MAUI بوضع Debug لتخطي الحماية وبدون حساب مدفوع
-          dotnet workload install maui
-          dotnet build CeramicManager.csproj -c Debug -f net9.0-ios /p:EnableCodeSigning=false /p:CompileEntitlements=false
+          wget https://dot.net/v1/dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0 --install-dir "$DOTNET_PATH"
+
+      - name: Install MAUI
+        script: |
+          $DOTNET workload install ios maui
+
+      - name: Build iOS
+        script: |
+          $DOTNET publish CeramicManager.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:BuildIpa=true \
+            -p:PublishTrimmed=false \
+            -p:RunAOTCompilation=false \
+            -p:ApplicationId=com.companyname.ceramicmanager \
+            -o "$CM_BUILD_DIR/artifacts"
+
     artifacts:
-      - $CM_BUILD_DIR/**/*.app
+      - $CM_BUILD_DIR/artifacts/*.ipa
