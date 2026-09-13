@@ -7,23 +7,18 @@ workflows:
       events:
         - push
     scripts:
-      - name: Install .NET SDK
+      - name: Install .NET and Build iOS App
         script: |
-          # تحميل وتثبيت سكريبت دوت نت الرسمي
+          # 1. تحميل وتثبيت دوت نت 9 في مجلد محلي
           curl -sSL https://dot.net -o dotnet-install.sh
           chmod +x dotnet-install.sh
           ./dotnet-install.sh --version 9.0.100 --install-dir $HOME/dotnet
           
-          # إضافة دوت نت إلى مسار النظام المؤقت داخل الخادم ليتعرف عليه
-          echo "export DOTNET_ROOT=$HOME/dotnet" >> $GITHUB_ENV
-          echo "export PATH=$PATH:$HOME/dotnet" >> $GITHUB_ENV
+          # 2. تعريف المسارات بشكل مباشر داخل نفس السكريبت
           export DOTNET_ROOT=$HOME/dotnet
-          export PATH=$PATH:$HOME/dotnet
-
-      - name: Build iOS Application
-        script: |
-          export DOTNET_ROOT=$HOME/dotnet
-          export PATH=$PATH:$HOME/dotnet
+          export PATH=$HOME/dotnet:$PATH
+          
+          # 3. تثبيت بيئة عمل MAUI والبدء بالبناء فوراً
           dotnet workload install maui
           dotnet build CeramicManager.csproj -c Release -f net9.0-ios
     artifacts:
