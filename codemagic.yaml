@@ -1,19 +1,39 @@
 workflows:
-  maui-ios-build:
-    name: CeramicManager iOS Build
-    max_build_duration: 60
+  ceramic-ios:
+    name: CeramicManager iOS
+    max_build_duration: 120
     instance_type: mac_mini_m2
+
     environment:
-      # هذه الميزة تجعل الخادم يجهز دوت نت 9 تلقائياً قبل بدء الأكواد
-      groups:
-        - dotnet
-    triggering:
-      events:
-        - push
+      vars:
+        DOTNET_PATH: $CM_BUILD_DIR/dotnet
+        DOTNET: $CM_BUILD_DIR/dotnet/dotnet
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: com.companyname.ceramicmanager
+
     scripts:
+      - name: Install .NET SDK
+        script: |
+          wget https://dot.net/v1/dotnet-install.sh
+          chmod +x dotnet-install.sh
+          ./dotnet-install.sh --channel 10.0 --install-dir "$DOTNET_PATH"
+
+      - name: Install MAUI
+        script: |
+          $DOTNET nuget locals all --clear
+          $DOTNET workload install ios maui
+
       - name: Build iOS Application
         script: |
-          dotnet workload install maui
-          dotnet build CeramicManager.csproj -c Release -f net9.0-ios
+          $DOTNET publish CeramicManager.csproj \
+            -f net10.0-ios \
+            -c Release \
+            -p:BuildIpa=true \
+            -p:PublishTrimmed=false \
+            -p:RunAOTCompilation=false \
+            -p:ApplicationId=com.companyname.ceramicmanager \
+            -o "$CM_BUILD_DIR/artifacts"
+
     artifacts:
-      - $CM_BUILD_DIR/**/*.ipa
+      - $CM_BUILD_DIR/artifacts/*.ipa
