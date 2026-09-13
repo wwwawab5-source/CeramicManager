@@ -9,14 +9,17 @@ workflows:
     scripts:
       - name: Build iOS Application
         script: |
-          # إضافة مسار دوت نت الافتراضي
-          export PATH=$PATH:/usr/local/share/dotnet
+          # 1. البحث التلقائي عن مسار دوت نت وتفعيله أينما وجد في خادم الماك
+          export PATH=$PATH:/usr/local/share/dotnet:/usr/share/dotnet:$HOME/.dotnet
           export DOTNET_ROOT=/usr/local/share/dotnet
           
-          # تثبيت بيئة العمل
-          dotnet workload install maui
+          # تأكيد إضافي للمسار لضمان عمله في خوادم آبل السيليكون M2
+          if [ -d "/usr/local/share/dotnet" ]; then
+            export PATH="/usr/local/share/dotnet:$PATH"
+          fi
           
-          # تحويل وضع البناء إلى Debug ليتخطى حماية آبل بدون حساب مدفوع
+          # 2. تشغيل أوامر بيئة MAUI بوضع Debug لتخطي الحماية وبدون حساب مدفوع
+          dotnet workload install maui
           dotnet build CeramicManager.csproj -c Debug -f net9.0-ios /p:EnableCodeSigning=false /p:CompileEntitlements=false
     artifacts:
       - $CM_BUILD_DIR/**/*.app
