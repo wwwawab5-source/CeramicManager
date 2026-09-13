@@ -3,22 +3,16 @@ workflows:
     name: CeramicManager iOS Build
     max_build_duration: 60
     instance_type: mac_mini_m2
+    environment:
+      # هذه الميزة تجعل الخادم يجهز دوت نت 9 تلقائياً قبل بدء الأكواد
+      groups:
+        - dotnet
     triggering:
       events:
         - push
     scripts:
-      - name: Install .NET and Build iOS App
+      - name: Build iOS Application
         script: |
-          # 1. تحميل وتثبيت دوت نت 9 في مجلد محلي
-          curl -sSL https://dot.net -o dotnet-install.sh
-          chmod +x dotnet-install.sh
-          ./dotnet-install.sh --version 9.0.100 --install-dir $HOME/dotnet
-          
-          # 2. تعريف المسارات بشكل مباشر داخل نفس السكريبت
-          export DOTNET_ROOT=$HOME/dotnet
-          export PATH=$HOME/dotnet:$PATH
-          
-          # 3. تثبيت بيئة عمل MAUI والبدء بالبناء فوراً
           dotnet workload install maui
           dotnet build CeramicManager.csproj -c Release -f net9.0-ios
     artifacts:
